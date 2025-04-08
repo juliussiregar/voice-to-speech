@@ -10,6 +10,7 @@ import crypto from "crypto";
 
 // A simple in-memory audio file storage (in production, use cloud storage)
 const audioFilesDir = path.join(process.cwd(), 'dist', 'audio-files');
+const sampleMp3Path = path.join(process.cwd(), 'sample.mp3');
 
 // Ensure the directory exists
 if (!fs.existsSync(audioFilesDir)) {
@@ -44,10 +45,15 @@ export class TTSService {
         // 1. Call the Google Cloud TTS API with the text and voice settings
         // 2. Save the returned audio data to the file
         
-        // For this simulation, we'll create an empty MP3 file (1KB) to simulate storage
+        // For this simulation, we'll copy our sample MP3 file to the output location
         // In production, this would be actual audio data from the TTS API
-        const dummyBuffer = Buffer.alloc(1024);
-        await this.writeFileAsync(filePath, dummyBuffer);
+        if (fs.existsSync(sampleMp3Path)) {
+          fs.copyFileSync(sampleMp3Path, filePath);
+        } else {
+          console.warn('Sample MP3 file not found, creating empty file');
+          const dummyBuffer = Buffer.alloc(1024);
+          await this.writeFileAsync(filePath, dummyBuffer);
+        }
       }
       
       // Return the URL to the audio file
