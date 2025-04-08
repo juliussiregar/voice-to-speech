@@ -4,10 +4,14 @@ import path from "path";
 import util from "util";
 import crypto from "crypto";
 import { exec } from "child_process";
+import axios from "axios";
 
 // A simple in-memory audio file storage (in production, use cloud storage)
 const audioFilesDir = path.join(process.cwd(), 'dist', 'audio-files');
 const sampleMp3Path = path.join(process.cwd(), 'sample.mp3');
+
+// Google Cloud API Key
+const GOOGLE_API_KEY = "AIzaSyAbwV5W2aFHOgIhQisaG2kaTd2xBWGuVeo";
 
 // Ensure the directory exists
 if (!fs.existsSync(audioFilesDir)) {
@@ -41,60 +45,41 @@ export class TTSService {
       // Check if we already have this audio file to avoid regenerating it
       if (!fs.existsSync(filePath)) {
         try {
-          // Check if Google Application Credentials are available
-          if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-            throw new Error('GOOGLE_APPLICATION_CREDENTIALS environment variable not set');
-          }
-
-          // Read the credentials file
-          const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-          const credentialsData = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+          console.log("Converting text to speech:", request.text);
           
-          // Extract project ID
-          const projectId = credentialsData.project_id;
+          // Map voice type to proper Google voice name
+          const voiceName = this.getGoogleTTSVoice(request.voiceType);
+          const speakingRate = this.getSpeakingRate(request.speechSpeed);
           
-          // Get access token from credentials
-          const tokenUrl = 'https://oauth2.googleapis.com/token';
-          const tokenPayload = {
-            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            assertion: this.createJWT(credentialsData)
+          // Prepare the API request payload
+          const requestData = {
+            input: {
+              text: request.text
+            },
+            voice: {
+              languageCode: "id-ID",
+              name: voiceName
+            },
+            audioConfig: {
+              audioEncoding: "MP3",
+              speakingRate: speakingRate
+            }
           };
           
-          const tokenResponse = await axios.post(tokenUrl, new URLSearchParams(tokenPayload));
-          const accessToken = tokenResponse.data.access_token;
-          
-          // Call the Google Cloud TTS API
+          // Call the Google Cloud TTS API using axios
           const response = await axios.post(
-            'https://texttospeech.googleapis.com/v1/text:synthesize',
-            {
-              input: {
-                text: request.text
-              },
-              voice: {
-                languageCode: 'id-ID',
-                // Map the voiceType to an appropriate Google Cloud TTS voice
-                name: this.getGoogleTTSVoice(request.voiceType)
-              },
-              audioConfig: {
-                audioEncoding: 'MP3',
-                // Adjust the speaking rate based on speechSpeed
-                speakingRate: this.getSpeakingRate(request.speechSpeed)
-              }
-            },
+            `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_API_KEY}`,
+            requestData,
             {
               headers: {
-                'Content-Type': 'application/json',
-                'X-Goog-User-Project': projectId,
-                'Authorization': `Bearer ${accessToken}`
+                'Content-Type': 'application/json'
               }
             }
           );
           
-          // The API returns audio content as a base64 encoded string
-          const audioContent = response.data.audioContent;
-          if (audioContent) {
+          if (response.data && response.data.audioContent) {
             // Convert base64 to binary and save to file
-            const audioBuffer = Buffer.from(audioContent, 'base64');
+            const audioBuffer = Buffer.from(response.data.audioContent, 'base64');
             await this.writeFileAsync(filePath, audioBuffer);
             console.log(`Generated audio file saved to ${filePath}`);
           } else {
@@ -136,10 +121,6 @@ export class TTSService {
         return 'id-ID-Wavenet-A';  // WaveNet female voice
       case 'female-3':
         return 'id-ID-Chirp3-HD-Leda';  // Neural2 female voice (HD)
-      case 'male-1':
-        return 'id-ID-Standard-B'; // Standard male voice
-      case 'male-2':
-        return 'id-ID-Wavenet-B';  // WaveNet male voice
       default:
         return 'id-ID-Chirp3-HD-Leda';  // Default to female HD voice
     }
