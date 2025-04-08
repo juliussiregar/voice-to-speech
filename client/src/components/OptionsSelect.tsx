@@ -27,9 +27,11 @@ export default function OptionsSelect({
               <SelectValue placeholder="Select voice" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="female-standard">Indonesian Female (Standard)</SelectItem>
-              <SelectItem value="female-casual">Indonesian Female (Casual)</SelectItem>
-              <SelectItem value="female-formal">Indonesian Female (Formal)</SelectItem>
+              <SelectItem value="female-1">Indonesian Female (Standard)</SelectItem>
+              <SelectItem value="female-2">Indonesian Female (WaveNet)</SelectItem>
+              <SelectItem value="female-3">Indonesian Female (HD)</SelectItem>
+              <SelectItem value="male-1">Indonesian Male (Standard)</SelectItem>
+              <SelectItem value="male-2">Indonesian Male (WaveNet)</SelectItem>
             </SelectContent>
           </Select>
         </div>

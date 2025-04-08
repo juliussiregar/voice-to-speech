@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
   const [text, setText] = useState("");
-  const [voiceType, setVoiceType] = useState("female-standard");
+  const [voiceType, setVoiceType] = useState("female-3"); // Default to high-quality female voice
   const [speechSpeed, setSpeechSpeed] = useState("1.0");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const { toast } = useToast();
