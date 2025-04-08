@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Open Sans', sans-serif;
+    background-color: #F5F5F5;
+    color: #333333;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', sans-serif;
+  }
+}
+
+@layer components {
+  .secondary-btn {
+    @apply bg-secondary hover:bg-pink-600 text-white font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm;
+  }
+  
+  .accent-btn {
+    @apply bg-accent hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm;
+  }
+}
